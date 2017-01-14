@@ -2,6 +2,10 @@ const path = require('path');
 const fs = require('fs');
 const parseXml = require('xml2js').parseString;
 
+const util = require('./util');
+const readFilePromise = util.readFilePromise;
+const writeFilePromise = util.writeFilePromise;
+
 const DATA_FILE = path.join(__dirname, 'data.json');
 
 function listDirectoryPromise(directory) {
@@ -15,17 +19,6 @@ function listDirectoryPromise(directory) {
   });
 }
 
-function readFilePromise(file) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(file, 'utf8', (err, data) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(data);
-    });
-  });
-}
-
 function parseXmlPromise(string) {
   return new Promise((resolve, reject) => {
     parseXml(string, (err, result) => {
@@ -34,18 +27,6 @@ function parseXmlPromise(string) {
       }
       resolve(result);
     })
-  });
-}
-
-function saveFilePromise(file, contents) {
-  return new Promise((resolve, reject) => {
-    console.log('Writing file...');
-    fs.writeFile(file, contents, 'utf8', (err) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(contents);
-    });
   });
 }
 
@@ -76,7 +57,7 @@ function getActivitiesJSON(activitiesDir) {
 }
 
 function saveActivitiesFile(contentsArray) {
-  return saveFilePromise(DATA_FILE, JSON.stringify(contentsArray))
+  return writeFilePromise(DATA_FILE, JSON.stringify(contentsArray))
     .then(() => {
       console.log('Activities successfully saved.');
       return Promise.resolve();
@@ -84,14 +65,10 @@ function saveActivitiesFile(contentsArray) {
 }
 
 function readActivitiesFile() {
-  return new Promise((resolve, reject) => {
-    return fs.readFile(DATA_FILE, 'utf-8', (err, contents) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve(contents);
+  return readFilePromise(DATA_FILE)
+    .then((contents) => {
+      return Promise.resolve(JSON.parse(contents));
     });
-  });
 }
 
 module.exports = {
